@@ -2,6 +2,7 @@
 This module takes care of starting the API Server, Loading the DB and Adding the endpoints
 """
 import os
+import requests
 from flask import Flask, request, jsonify, url_for
 from flask_migrate import Migrate
 from flask_swagger import swagger
@@ -9,6 +10,7 @@ from flask_cors import CORS
 from utils import APIException, generate_sitemap
 from admin import setup_admin
 from models import db, User
+
 #from models import Person
 
 app = Flask(__name__)
@@ -32,6 +34,15 @@ def sitemap():
 
 @app.route('/user', methods=['GET'])
 def handle_hello():
+    resp = requests.get('https://openlibrary.org/books/OL7353616M.json').json()
+    # for request_body in resp:
+    #     item = User(name=request_body["title"], isbn=request_body["isbn_10"][0])
+    #     db.session.add(item)
+    #     db.session.commit()
+    item = User(name=resp["title"], isbn=resp["isbn_10"][0])
+    db.session.add(item)
+    db.session.commit()
+    # print(resp["isbn_10"][0])
 
     response_body = {
         "msg": "Hello, this is your GET /user response "
