@@ -1,22 +1,39 @@
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import Column, ForeignKey, Integer, String
+from sqlalchemy.orm import relationship
 
 db = SQLAlchemy()
 
-class User(db.Model):
+class Books(db.Model):
+    __tablename__ = 'books'
     id = db.Column(db.Integer, primary_key=True)
-    # email = db.Column(db.String(120), unique=True, nullable=False)
-    # password = db.Column(db.String(80), unique=False, nullable=False)
     name = db.Column(db.String(120), nullable=False)
-    isbn = db.Column(db.String(120), unique=True, nullable=False)
-    # is_active = db.Column(db.Boolean(), unique=False, nullable=False)
-
+    isbn = db.Column(db.Integer, nullable=False)
+    comments = db.relationship("Comments", back_populates="books")
 
     def __repr__(self):
-        return '<User %r>' % self.username
+        return '<Books %r>' % self.name
 
     def serialize(self):
         return {
             "id": self.id,
-            "email": self.email,
-            # do not serialize the password, its a security breach
+            "name": self.name,
+            "isbn": self.isbn,
+            "comments": list(map(lambda x: x.serialize(), self.comments))
+        }
+
+class Comments(db.Model):
+    __tablename__ = 'comments'
+    id = db.Column(db.Integer, primary_key=True)
+    comment = db.Column(db.String(400))
+    book_id = db.Column(db.Integer, db.ForeignKey("books.id"))
+    books = relationship("Books", primaryjoin=book_id == Books.id)
+
+    def __repr__(self):
+        return '<Comments %r>' % self.comment
+
+    def serialize(self):
+        return {
+            "id": self.id,
+            "comment": self.comment,
         }
